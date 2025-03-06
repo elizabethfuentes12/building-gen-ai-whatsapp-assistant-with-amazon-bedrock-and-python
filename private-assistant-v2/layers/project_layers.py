@@ -23,14 +23,6 @@ class Layers(Construct):
             description = 'whatsapp utils', layer_version_name = "whatsapp-layer"
         )
 
-        # Transcribe layer
-        self.transcribe = aws_lambda.LayerVersion(
-            self, "transcribe-layer", code=aws_lambda.Code.from_asset("./layers/transcribe_utils/"),
-            compatible_runtimes = self._default_runtimes, 
-            description = 'transcribe utils', layer_version_name = "transcribe-layer"
-        )
-
-
         # Boto3 layer for end user messaging
         self.boto3layer = aws_lambda.LayerVersion(
             self, "Boto3.1.36.21", code=aws_lambda.Code.from_asset("./layers/boto3.1.36.21.zip"),
