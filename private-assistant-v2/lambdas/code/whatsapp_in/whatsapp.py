@@ -20,10 +20,10 @@ class WhatsappMessage:
         client=None,
         meta_api_version="v20.0",
     ) -> None:
-        # arn:aws:social-messaging:region:account:phone-number-id/976c72a700aac43eaf573ae050example
+        # arn:aws:social-messaging:region:account:phone-number-id/example
         self.meta_phone_number = meta_phone_number
         self.phone_number_arn = meta_phone_number.get("arn", "")
-        # phone-number-id-976c72a700aac43eaf573ae050example
+        # phone-number-id-example
         self.phone_number_id = self.phone_number_arn.split(":")[-1].replace("/", "-")
         self.message = message
         self.metadata = metadata
