@@ -18,7 +18,7 @@ BASE_LAMBDA_CONFIG = dict (
     memory_size=256,
     tracing= aws_lambda.Tracing.ACTIVE)
 
-COMMON_LAMBDA_CONF = dict (runtime=aws_lambda.Runtime.PYTHON_3_11, **BASE_LAMBDA_CONFIG)
+COMMON_LAMBDA_CONF = dict (runtime=aws_lambda.Runtime.PYTHON_3_13, **BASE_LAMBDA_CONFIG)
 
 from layers import Layers
 
@@ -63,40 +63,18 @@ class Lambdas(Construct):
             code=aws_lambda.Code.from_asset("./lambdas/code/process_stream"),
             layers= [Lay.bs4_requests, Lay.common],**COMMON_LAMBDA_CONF)
         
-        self.langchain_agent_text = aws_lambda.Function(
-            self, "langChain_agent_text", 
-            description ="Agent with LangChain and Amazon Bedrock" ,
-            handler="lambda_function.lambda_handler",
-            code=aws_lambda.Code.from_asset("./lambdas/code/langchain_agent_text"),
-            layers= [Lay.bedrock,Lay.bs4_requests,Lay.langchain],
-            architecture=aws_lambda.Architecture.ARM_64,
-            **COMMON_LAMBDA_CONF)
-        
         self.agent_image_v3 = aws_lambda.Function(
             self, "agent_image_v3", 
-            description ="queries anthropic.claude-3-sonnet - Image" ,
+            description ="Image assistant: Amazon Bedrock Converse API" ,
             handler="lambda_function.lambda_handler",
             code=aws_lambda.Code.from_asset("./lambdas/code/agent_image_v3"),
-            layers= [Lay.bedrock,Lay.common,Lay.bs4_requests],
-            architecture=aws_lambda.Architecture.ARM_64,
+            layers= [Lay.boto3,Lay.common,Lay.bs4_requests],
             **COMMON_LAMBDA_CONF)
         
         self.agent_text_v3 = aws_lambda.Function(
             self, "agent_text_v3", 
-            description ="queries anthropic.claude-3-sonnet - Text " ,
+            description ="Text assistant: Amazon Bedrock Converse API" ,
             handler="lambda_function.lambda_handler",
             code=aws_lambda.Code.from_asset("./lambdas/code/agent_text_v3"),
-            layers= [Lay.bedrock,Lay.bs4_requests,Lay.common],
-            architecture=aws_lambda.Architecture.ARM_64,
+            layers= [Lay.boto3,Lay.bs4_requests,Lay.common],
             **COMMON_LAMBDA_CONF)
-        
-        """
-        self.langchain_agent_audio = aws_lambda.Function(
-            self, "langChain_agent_audio", 
-            description ="Airline Agent with LangChain and Amacon Bedrock" ,
-            handler="lambda_function.lambda_handler",
-            code=aws_lambda.Code.from_asset("./lambdas/code/langchain_agent_audio"),
-            layers= [Lay.bedrock,Lay.bs4_requests,Lay.common,Lay.langchain],
-            architecture=aws_lambda.Architecture.ARM_64,
-            **COMMON_LAMBDA_CONF)
-        """

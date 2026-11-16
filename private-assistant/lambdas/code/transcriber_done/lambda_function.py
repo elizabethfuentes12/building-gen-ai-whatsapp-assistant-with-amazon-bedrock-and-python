@@ -72,7 +72,7 @@ def lambda_handler(event, context):
 
                 whats_reply(whatsapp_out_lambda,phone, whats_token, phone_id, f"{text}", keyvalue)
 
-                #remove this comment if you want to send voice notes to the agent!
+                #remove this comment if you want to send voice notes to the agent (agent_text_v3, Converse API)!
 
                 """ 
                 try:       

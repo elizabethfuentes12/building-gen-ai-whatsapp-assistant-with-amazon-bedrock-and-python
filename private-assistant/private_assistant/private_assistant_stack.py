@@ -29,9 +29,9 @@ class PrivateAssistantStack(Stack):
         AudioKeyName = "audio-from-whatsapp"
         TextBucketName = "text-to-whatsapp"
         ImageKeyName = "image-from-whatsapp"
-        model_id = "anthropic.claude-instant-v1"
-        model_id_v3 = "anthropic.claude-3-5-sonnet-20240620-v1:0"
-        anthropic_version = "bedrock-2023-05-31"
+        # Cross-region inference profile for Claude Haiku 5.5 (Converse API, text + image).
+        # Model card: https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-anthropic-claude-haiku-5-5.html
+        model_id_v3 = "global.anthropic.claude-haiku-5-5"
         
         DISPLAY_PHONE_NUMBER = 'YOU-NUMBER'
 
@@ -91,7 +91,6 @@ class PrivateAssistantStack(Stack):
         Fn.whatsapp_out.add_environment(key='ENV_INDEX_NAME', value="jobnameindex")
         Fn.whatsapp_out.add_environment(key='ENV_KEY_NAME', value="messages_id")
 
-        Fn.whatsapp_out.grant_invoke(Fn.langchain_agent_text)
         Fn.whatsapp_out.grant_invoke(Fn.agent_image_v3)
         Fn.whatsapp_out.grant_invoke(Fn.agent_text_v3)
 
@@ -128,27 +127,9 @@ class PrivateAssistantStack(Stack):
         Tbl.whatsapp_MetaData.grant_full_access(Fn.transcriber_done)
         Fn.transcriber_done.add_environment(key='whatsapp_MetaData', value=Tbl.whatsapp_MetaData.table_name)
 
-        Fn.langchain_agent_text.grant_invoke(Fn.transcriber_done)
+        Fn.agent_text_v3.grant_invoke(Fn.transcriber_done)
 
-        Fn.transcriber_done.add_environment( key='ENV_LAMBDA_AGENT_TEXT', value=Fn.langchain_agent_text.function_name)
-
-        # langchain_agent_text
-
-        Tbl.session_table_history.grant_full_access(Fn.langchain_agent_text)
-        Fn.langchain_agent_text.add_environment(key='session_table_history', value=Tbl.session_table_history.table_name)
-
-        Tbl.whatsapp_MetaData.grant_full_access(Fn.langchain_agent_text)
-        Fn.langchain_agent_text.add_environment(key='whatsapp_MetaData', value=Tbl.whatsapp_MetaData.table_name)
-
-        Tbl.user_sesion_metadata.grant_full_access(Fn.langchain_agent_text)
-        Fn.langchain_agent_text.add_environment(key='user_sesion_metadata', value=Tbl.user_sesion_metadata.table_name)
-        
-        Fn.langchain_agent_text.add_environment(key='ENV_MODEL_ID', value=model_id)
-
-        Fn.langchain_agent_text.add_environment( key='WHATSAPP_OUT', value=Fn.whatsapp_out.function_name )
-        
-        Fn.langchain_agent_text.grant_invoke(Fn.process_stream)
-        Fn.langchain_agent_text.add_to_role_policy(iam.PolicyStatement( actions=["bedrock:*"], resources=['*']))
+        Fn.transcriber_done.add_environment( key='ENV_LAMBDA_AGENT_TEXT', value=Fn.agent_text_v3.function_name)
 
         # agent_image_v3
 
@@ -162,19 +143,18 @@ class PrivateAssistantStack(Stack):
         Fn.agent_image_v3.add_environment(key='user_sesion_metadata', value=Tbl.user_sesion_metadata.table_name)
 
         Fn.agent_image_v3.add_environment(key='ENV_MODEL_ID', value=model_id_v3)
-        Fn.agent_image_v3.add_environment(key='ENV_ANTHROPIC_VERSION', value=anthropic_version)
 
         Fn.agent_image_v3.add_environment(key='BucketName', value=s3_deploy.bucket.bucket_name)
         Fn.agent_image_v3.add_environment(key='ImageKeyName', value=ImageKeyName)
 
         Fn.agent_image_v3.add_environment( key='WHATSAPP_OUT', value=Fn.whatsapp_out.function_name )
 
-        Fn.agent_image_v3.add_to_role_policy(iam.PolicyStatement( actions=["bedrock:*"], resources=['*']))
+        Fn.agent_image_v3.add_to_role_policy(iam.PolicyStatement( actions=["bedrock:InvokeModel"], resources=['*']))
         Fn.agent_image_v3.grant_invoke(Fn.process_stream)
 
         s3_deploy.bucket.grant_read_write(Fn.agent_image_v3) 
 
-        # langchain_agent_text
+        # agent_text_v3
 
         Tbl.session_table_history.grant_full_access(Fn.agent_text_v3)
         Fn.agent_text_v3.add_environment(key='session_table_history', value=Tbl.session_table_history.table_name)
@@ -184,14 +164,10 @@ class PrivateAssistantStack(Stack):
 
         Tbl.user_sesion_metadata.grant_full_access(Fn.agent_text_v3)
         Fn.agent_text_v3.add_environment(key='user_sesion_metadata', value=Tbl.user_sesion_metadata.table_name)
-        
+
         Fn.agent_text_v3.add_environment(key='ENV_MODEL_ID_V3', value=model_id_v3)
 
         Fn.agent_text_v3.add_environment( key='WHATSAPP_OUT', value=Fn.whatsapp_out.function_name )
-        
+
         Fn.agent_text_v3.grant_invoke(Fn.process_stream)
-        Fn.agent_text_v3.add_to_role_policy(iam.PolicyStatement( actions=["bedrock:*"], resources=['*']))
-        Fn.agent_text_v3.add_environment(key='ENV_ANTHROPIC_VERSION', value=anthropic_version)
-
-        
-
+        Fn.agent_text_v3.add_to_role_policy(iam.PolicyStatement( actions=["bedrock:InvokeModel"], resources=['*']))
